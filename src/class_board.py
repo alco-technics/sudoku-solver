@@ -32,8 +32,7 @@ class Board:
 
     # 候補リストの初期値を求める
     self.update_all_candidate_list()
-    #
-    self.candidate_list[Const.AREA_KEY_NAME] = self.convert_to_candidate_list_area()
+    # 候補リストを表示する
     self.print_candidate_list()
 
     self.candidate_list_cell_dump = {} # 候補リストをダンプする
@@ -74,7 +73,7 @@ class Board:
     # セルが埋まっていない、かつ候補リストが空のセルがあればNG
     for i in range(self.size):
       for j in range(self.size):
-        if len(self.candidate_list[(i, j)]) == 0 \
+        if len(self.candidate_list[Const.CELL_KEY_NAME][(i, j)]) == 0 \
                 and self.data.iloc[i, j] == 0:
           return True
     # 列/行/正方形を抽出し、1～self.sizeが重複していないかチェック
@@ -130,13 +129,16 @@ class Board:
           if val in candidate_list_cell[(i, j)]:
             candidate_list_cell[(i, j)].remove(val)
 
-  # 全てのセルの候補リストを更新する
+  # 全ての候補リストを更新する
   def update_all_candidate_list(self):
+    # セル内の候補リストを更新する
     for i in range(self.size):
       for j in range(self.size):
         if self.data.iloc[i, j] != 0:
           self.candidate_list[Const.CELL_KEY_NAME][(i, j)].clear()
           self.update_candidate_list((i, j))
+    # 領域内のセル候補リストを更新する
+    self.candidate_list[Const.AREA_KEY_NAME] = self.convert_to_candidate_list_area()
 
   # 候補リストを表示する
   def print_candidate_list(self):
