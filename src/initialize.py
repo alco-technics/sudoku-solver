@@ -80,7 +80,7 @@ if __name__ == "__main__":
   # print(board)
 
   board = makeBoardFromCsv('..\data\sample_0001.csv')
-  initBoard = board.copy()
+  initBoard = copy.deepcopy(board)
   print(board)
   print(board.size)
   # comLib.updateCell(board, 0, 0, 8)
