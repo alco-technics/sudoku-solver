@@ -108,6 +108,7 @@ class Board:
   
   # 特定セルの値に対して、関連するセルの候補リストを更新する
   def update_candidate_list(self, pos, val = -1):
+    update_flg = False
     row, col = pos
     val = self.data.iloc[row, col] if val == -1 else val
     sq_size = int(math.sqrt(self.size))
@@ -121,24 +122,81 @@ class Board:
       # 関連する行、列、矩形内のセルから該当する候補の値を削除する
       for i in range(self.size):
         if val in candidate_list_cell[(row, i)]:  # 横
+          update_flg = True
           candidate_list_cell[(row, i)].remove(val)
         if val in candidate_list_cell[(i, col)]:  # 縦
+          update_flg = True
           candidate_list_cell[(i, col)].remove(val)
       for i in range(sq_r * sq_size, (sq_r + 1) * sq_size): # 矩形
         for j in range(sq_c * sq_size, (sq_c + 1) * sq_size):
           if val in candidate_list_cell[(i, j)]:
+            update_flg = True
             candidate_list_cell[(i, j)].remove(val)
+    return update_flg
+
 
   # 全ての候補リストを更新する
   def update_all_candidate_list(self):
+    update_flg = False
     # セル内の候補リストを更新する
     for i in range(self.size):
       for j in range(self.size):
         if self.data.iloc[i, j] != 0:
           self.candidate_list[Const.CELL_KEY_NAME][(i, j)].clear()
-          self.update_candidate_list((i, j))
+          update_flg = self.update_candidate_list((i, j))
     # 領域内のセル候補リストを更新する
     self.candidate_list[Const.AREA_KEY_NAME] = self.convert_to_candidate_list_area()
+    return update_flg
+
+  # ロジックにより、候補リストを更新する
+  # 各領域における各値ごとのセル候補リストがセルの数と値の数が一致する場合
+  # それ以外は候補から外す。
+  def update_candidate_list_2(self):
+    update_flg = False
+    candidate_list_cell = self.candidate_list[Const.CELL_KEY_NAME]
+    candidate_list_area = self.candidate_list[Const.AREA_KEY_NAME]
+    candidate_list_area_col = candidate_list_area[Const.COLUMN_KEY_NAME]
+    candidate_list_area_row = candidate_list_area[Const.ROW_KEY_NAME]
+    candidate_list_area_square = candidate_list_area[Const.SQUARE_KEY_NAME]
+    # 横や縦のセル候補リストが全て同じ矩形内であれば、その矩形内の他の候補は削除する
+    for col, values in candidate_list_area_col.items():
+      for val, cells in values.items():
+        sq_idx_list = [self.get_square_index(cell) for cell in cells]
+        if len(list(set(sq_idx_list))) == 1:
+          for cell in candidate_list_area_square[sq_idx_list[0]][val]:
+            if cell not in cells and val in candidate_list_cell[cell]:
+              update_flg = True
+              candidate_list_cell[cell].remove(val)
+    for row, values in candidate_list_area_row.items():
+      for val, cells in values.items():
+        sq_idx_list = [self.get_square_index(cell) for cell in cells]
+        if len(list(set(sq_idx_list))) == 1:
+          for cell in candidate_list_area_square[sq_idx_list[0]][val]:
+            if cell not in cells and val in candidate_list_cell[cell]:
+              update_flg = True
+              candidate_list_cell[cell].remove(val)
+    # 矩形のセル候補リストが全て同じ行や列内であれば、その行や列内の他の候補は削除する
+    for sq, values in candidate_list_area_square.items():
+      for val, cells in values.items():
+        row_idx_list = []
+        col_idx_list = []
+        for cell in cells:
+          col_idx_list.append(cell[0])
+          row_idx_list.append(cell[1])
+        if len(list(set(row_idx_list))) == 1:
+          for cell in candidate_list_area_row[row_idx_list[0]][val]:
+            if cell not in cells and val in candidate_list_cell[cell]:
+              update_flg = True
+              candidate_list_cell[cell].remove(val)
+        if len(list(set(col_idx_list))) == 1:
+          for cell in candidate_list_area_col[col_idx_list[0]][val]:
+            if cell not in cells and val in candidate_list_cell[cell]:
+              update_flg = True
+              candidate_list_cell[cell].remove(val)
+    if update_flg:
+      candidate_list_area = self.convert_to_candidate_list_area()
+    return update_flg
+
 
   # 候補リストを表示する
   def print_candidate_list(self):
@@ -210,3 +268,11 @@ class Board:
         candidate_list_area[Const.ROW_KEY_NAME][col][val].append(pos)  # 縦
         candidate_list_area[Const.SQUARE_KEY_NAME][sq_idx][val].append(pos)  # 矩形
     return candidate_list_area
+
+  # セル位置から矩形の番号を取得する
+  def get_square_index(self, pos):
+    row, col = pos
+    sq_size = int(math.sqrt(self.size))
+    return (row // sq_size) * sq_size + (col // sq_size)
+
+

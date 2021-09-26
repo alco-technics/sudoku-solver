@@ -14,7 +14,7 @@ if __name__ == "__main__":
   start_time = time.time()
 
   # インスタンス生成
-  board = class_board.Board(file_path = '../data/sample_0001.csv')
+  board = class_board.Board(file_path = '../data/sample_4002.csv')
   solver = class_solver.Solver()
 
   print("===== INIT =====")
@@ -26,11 +26,13 @@ if __name__ == "__main__":
     update_flg_1 = solver.update_data_with_candidate_list_cell(board)
     update_flg_2 = solver.update_data_with_candidate_list_area(board)
 
-    board.update_all_candidate_list()
+    update_flg_3 = board.update_all_candidate_list()
 
-    if not(update_flg_1 or update_flg_2):
-      print("===== LOOP END =====")
-      break
+    if not(update_flg_1 or update_flg_2 or update_flg_3):
+      update_flg_4 = board.update_candidate_list_2()
+      if not(update_flg_4):
+        print("===== LOOP END =====")
+        break
 
   end_time = time.time()
   print("Elapsed time [sec.] : {}".format(end_time - start_time))
