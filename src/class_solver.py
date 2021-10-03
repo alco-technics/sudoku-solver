@@ -10,8 +10,57 @@ import time
 from src.const import Const
 
 class Solver:
-  # def __init__(self):
-  #   self.board = board
+
+  ## public function ##
+
+  def __init__(self):
+    # self.board = board
+    self.select_result_log = []
+
+  # メイン関数
+  def solve(self, board):
+    while True:
+      # ロジカルに進められるルーティン
+      update_flg = self.update_routine_logical(board)
+
+      if board.is_complete():
+        print("===== COMPLETE! =====")
+        break
+
+      if not(update_flg):
+        # 現状のデータをダンプする
+        board.store_board_data()
+        # 探索するセルを選択する
+        select_result = self.select_search_cell(board)
+        select_pos, select_val = select_result
+        # 探索履歴を保持する
+        self.select_result_log.append(select_result)
+        board.update_cell(select_pos, select_val)
+        board.update_candidate_list(select_pos, select_val)
+
+      if board.is_wrong():
+        board.restore_board_data()
+        select_result = self.select_result_log.pop()
+        select_pos, select_val = select_result
+        # 候補リストから探索した結果を除外する
+        board.remove_from_candidate_list(select_pos, select_val)
+
+
+  ## private function ##
+
+  # 論理的な手法で更新するルーチン
+  def update_routine_logical(self, board):
+    update_flg_1 = self.update_data_with_candidate_list_cell(board)
+    update_flg_2 = self.update_data_with_candidate_list_area(board)
+
+    update_flg_3 = board.update_all_candidate_list()
+
+    if not(update_flg_1 or update_flg_2 or update_flg_3):
+      update_flg_4 = board.update_candidate_list_2()
+      if not(update_flg_4):
+        return False
+
+    return True
 
   # 候補リストのうち、1つになった値をセルに入れる
   def update_data_with_candidate_list_cell(self, board):
@@ -37,27 +86,9 @@ class Solver:
             board.update_cell(cell, val)
     return update_flg
 
-
-    if mode == Const.ROW_KEY_NAME: # 縦
-      for row in range(board.size):
-        for val in candidate_list[(row, index)]:
-          num_list[val - 1] += 1
-    elif mode == Const.COLUMN_KEY_NAME: # 横
-      for col in range(board.size):
-        for val in candidate_list[(index, col)]:
-          num_list[val - 1] += 1
-    else: # mode == Const.SQUARE_KEY_NAME # 矩形
-      sq_num = math.sqrt(board.size)
-      sq_x_index = index % sq_num
-      sq_y_index = index // sq_num
-      for row in range(sq_x_index*sq_num, (sq_x_index+1)*sq_num):
-        for col in range(sq_y_index * sq_num, (sq_y_index + 1) * sq_num):
-          for val in candidate_list[(row, col)]:
-            num_list[val - 1] += 1
-    return num_list
-
   # ロジック3(仮称)
   # 縦・横・矩形を見て、入る数のリストと入る数が全て同じならば、それ以外のその数リストは候補リストから外す。
+
 
   # 力技で解く
   # 全パターンから深さ優先探索で正解を探索する
@@ -80,7 +111,7 @@ class Solver:
       empty_cell_list = board.get_empty_cell_list()
       # print("empty_cell_list : {}".format(empty_cell_list))
       np.random.shuffle(empty_cell_list)
-      pos = self.get_next_search_cell(empty_cell_list, search_history, prev_pos)
+      pos = self.get_next_search_cell_randomly(empty_cell_list, search_history, prev_pos)
       # if board.is_wrong():
       #   print("WRONG...why??? 03")
       if len(pos) == 0: # 次に探索するセルが見つからない場合、探索結果を1つ戻す
@@ -123,7 +154,7 @@ class Solver:
 
   # ランダムに空いているセルを選択する
   # TODO ランダムに選ぶのが微妙な気がする
-  def get_next_search_cell(self, empty_cell_list, search_history, prev_pos):
+  def get_next_search_cell_randomly(self, empty_cell_list, search_history, prev_pos):
     for pos in empty_cell_list:
       if pos not in search_history[prev_pos][0]: # すでに探索済みのセルでない
         return pos
@@ -148,6 +179,31 @@ class Solver:
         return True
 
     return False
+
+  # 一番候補が少ない探索するセルを求める。
+  def select_search_cell(self, board):
+    candidate_list_cell = board.candidate_list[Const.CELL_KEY_NAME]
+    min_len_nums = board.size
+    # 候補がなるべく少ないセルを選びたい
+    cell_list = []
+    for cell, nums in candidate_list_cell.items():
+      len_nums = len(nums)
+      if len_nums == 0:
+        continue
+      if min_len_nums > len_nums:
+        min_len_nums = len_nums
+        cell_list.clear()
+        cell_list.append(cell)
+      elif min_len_nums == len_nums:
+        cell_list.append(cell)
+    # np.random.shuffle(cell_list)
+    # TODO もう少し細かく探索セルを決めたいかも。
+    # 候補が少ないセルのうち、他の候補から決定できる個数が多いものを選びたい
+    cell = cell_list[np.random.choice(len(cell_list))]
+    val = candidate_list_cell[cell][np.random.choice(min_len_nums)]
+    return cell, val
+
+
 
 
 

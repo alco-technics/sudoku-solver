@@ -14,6 +14,8 @@ from src.const import Const
 
 class Board:
 
+  ## public function ##
+
   # 初期化関数
   def __init__(self, file_path):
     # CSVファイルからデータを読み込む
@@ -35,8 +37,9 @@ class Board:
     # 候補リストを表示する
     self.print_candidate_list()
 
-    self.candidate_list_cell_dump = {} # 候補リストをダンプする
-
+    # ダンプするための配列
+    self.stored_data = [] # データ
+    self.stored_candidate_list = [] # 候補リスト
 
   # # CSVファイルから盤面を作成する (使わない)
   # def make_board_from_csv(file_path):
@@ -46,7 +49,7 @@ class Board:
   def clear(self):
     self.data = pd.DataFrame([[0] * self.size] * self.size)
 
-  # 最初の状態に戻す
+  # 最初の状態に戻す(使わないかも)
   def restart(self):
     self.data = copy.deepcopy(self.init_data)
 
@@ -61,12 +64,11 @@ class Board:
 
   # 完了判定
   def is_complete(self):
-    # TODO
     # 盤面が全て埋まっていて、間違いではない場合、True
     flg_all_filled = (0 not in self.data.values.flatten().tolist())
     flg_wrong = self.is_wrong()
 
-    return flg_all_filled and flg_wrong
+    return flg_all_filled and not(flg_wrong)
 
   # 間違いかどうか判定
   def is_wrong(self):
@@ -107,7 +109,7 @@ class Board:
     return False
   
   # 特定セルの値に対して、関連するセルの候補リストを更新する
-  def update_candidate_list(self, pos, val = -1):
+  def update_candidate_list(self, pos, val = -1, flg_area_update = True):
     update_flg = False
     row, col = pos
     val = self.data.iloc[row, col] if val == -1 else val
@@ -132,8 +134,14 @@ class Board:
           if val in candidate_list_cell[(i, j)]:
             update_flg = True
             candidate_list_cell[(i, j)].remove(val)
+    if flg_area_update:
+      self.candidate_list[Const.AREA_KEY_NAME] = self.convert_to_candidate_list_area()
     return update_flg
 
+  # 候補リストから除外する
+  def remove_val_from_candidate_list_cell(self, cell, val):
+    if val in self.candidate_list[Const.CELL_KEY_NAME][cell]:
+      self.candidate_list[Const.CELL_KEY_NAME][cell].remove(val)
 
   # 全ての候補リストを更新する
   def update_all_candidate_list(self):
@@ -143,14 +151,14 @@ class Board:
       for j in range(self.size):
         if self.data.iloc[i, j] != 0:
           self.candidate_list[Const.CELL_KEY_NAME][(i, j)].clear()
-          update_flg = self.update_candidate_list((i, j))
+          update_flg = self.update_candidate_list((i, j), flg_area_update=False)
     # 領域内のセル候補リストを更新する
     self.candidate_list[Const.AREA_KEY_NAME] = self.convert_to_candidate_list_area()
     return update_flg
 
-  # ロジックにより、候補リストを更新する
-  # 各領域における各値ごとのセル候補リストがセルの数と値の数が一致する場合
-  # それ以外は候補から外す。
+
+  # 候補リストを更新する
+  # 各領域の候補の値が他の1つの領域内に全てある場合、その他の領域の他の候補は削除する
   def update_candidate_list_2(self):
     update_flg = False
     candidate_list_cell = self.candidate_list[Const.CELL_KEY_NAME]
@@ -197,22 +205,32 @@ class Board:
       candidate_list_area = self.convert_to_candidate_list_area()
     return update_flg
 
+  # 候補リストを更新する
+  # 各領域における各値ごとのセル候補リストがセルの数と値の数が一致する場合
+  # それ以外は候補から外す。
+  # TODO
 
   # 候補リストを表示する
-  def print_candidate_list(self):
-    for key, value in self.candidate_list[Const.CELL_KEY_NAME].items():
+  def print_candidate_list(self, data_idx = -1):
+    if data_idx < 0:
+      all_values = self.candidate_list
+    else:
+      all_values = self.stored_candidate_list[data_idx]
+    for key, value in all_values[Const.CELL_KEY_NAME].items():
       print("(CELL) pos: {}, cells: {}".format(key, value))
-    for key, value in self.candidate_list[Const.AREA_KEY_NAME].items():
+    for key, value in all_values[Const.AREA_KEY_NAME].items():
       for key2, value2 in value.items():
         for key3, value3 in value2.items():
           print("(AREA) mode: {}, index: {}, val: {}, cells: {}"
                 .format(key, key2, key3, value3))
 
-
   # 盤面を表示する
-  def print_board(self):
+  def print_board_data(self, data_idx = -1):
+    if data_idx < 0:
+      all_values = self.data.values
+    else:
+      all_values = self.stored_data[data_idx].values
     sq_size = int(math.sqrt(self.size))
-    all_values = self.data.values
     # 横方向の仕切り文字の数
     # size * 2("n ") + sq_size * 2("| ") + 1("|")
     sep_char_num = self.size * 2 + sq_size * 2 + 1
@@ -232,9 +250,21 @@ class Board:
       print("|")
     print("="* sep_char_num)
 
-  # ダンプする
-  def save_candidate_list(self, key_str):
-    self.candidate_list_dump[key_str] = copy.deepcopy(self.candidate_list)
+
+  # データと候補リストを保存する
+  def store_board_data(self):
+    self.stored_data.append(copy.deepcopy(self.data))
+    self.stored_candidate_list.append(copy.deepcopy(self.candidate_list))
+
+  # 最新の保存データと候補リストを取り出す
+  def restore_board_data(self):
+    self.data = copy.deepcopy(self.stored_data.pop())
+    self.candidate_list = copy.deepcopy(self.stored_candidate_list.pop())
+
+  # 候補リストから特定のセルの特定の値を除外する
+  def remove_from_candidate_list(self, pos, val):
+    if val in self.candidate_list[Const.CELL_KEY_NAME][pos]:
+      self.candidate_list[Const.CELL_KEY_NAME][pos].remove(val)
 
   # 空いているセル一覧を取り出す
   def get_empty_cell_list(self):
@@ -243,9 +273,6 @@ class Board:
       for j in range(self.size):
         if self.data.iloc[i, j] == 0:
           cell_list.append((i, j))
-    # for key, value in self.candidate_list.items():
-    #   if len(value) != 0:
-    #     cell_list.append(key)
     return cell_list
 
   # セルごとの候補リストを変換する
