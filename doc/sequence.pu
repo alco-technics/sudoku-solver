@@ -1,0 +1,27 @@
+@startuml
+
+start
+
+repeat 
+    :update_routine_logical;
+    :update_candidate_list;
+
+    if (update_flg) then (false)
+        :dump_data;
+        :get_search_cell;
+        :update_routine_search;
+    endif
+
+    if (is_wrong) then (true)
+        :search結果を見直す;
+    endif 
+
+repeat while (is_complete = false)
+
+
+#PaleGreen:Finish!;
+:display_result;
+
+stop
+
+@enduml
