@@ -14,7 +14,7 @@ if __name__ == "__main__":
   start_time = time.time()
 
   # インスタンス生成
-  board = class_board.Board(file_path = '../data/sample_4006.csv')
+  board = class_board.Board(file_path = '../data/sample_5002.csv')
   solver = class_solver.Solver()
 
   print("===== INIT =====")
