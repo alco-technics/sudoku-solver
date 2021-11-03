@@ -21,15 +21,17 @@ def make_layout_board(size):
             pad_r = 3 if (x + 1) % sq_size == 0 else 0
             pad_t = 3 if y == 0 else 0
             pad_b = 3 if (y + 1) % sq_size == 0 else 0
-            tmp += [sg.Input(size=(2, 1),
-                             pad=((pad_l, pad_r), (pad_t, pad_b)),
-                             border_width=1,
-                             justification = 'center',
-                             font=('Arial', 24),
-                             key='-{},{}-'.format(x, y),
-                             readonly=True
-                             )
-                    ]
+            tmp += [
+                sg.Input(
+                    size=(2, 1),
+                    pad=((pad_l, pad_r), (pad_t, pad_b)),
+                    border_width=1,
+                    justification = 'center',
+                    font=('Arial', 24),
+                    key='-{},{}-'.format(x, y),
+                    readonly=True
+                    )
+                ]
         layout_board += [tmp]
     return layout_board
 
@@ -57,11 +59,15 @@ if __name__ == "__main__":
 
     ## 盤面のレイアウト
     layout_board = make_layout_board(board.size)
-    layout_board_frame = sg.Frame('',
-                            layout_board,
-                            relief=sg.RELIEF_SUNKEN,
-                            background_color = "black"
-                            )
+    layout_board_frame = sg.Frame(
+        '',
+        layout_board,
+        relief=sg.RELIEF_SUNKEN,
+        background_color="black"
+    )
+
+    print("layout_board...")
+    print(layout_board)
 
     ## ボタン
     layout_footer = [
@@ -71,12 +77,20 @@ if __name__ == "__main__":
         sg.Button('Quit', key='-quit-')
     ]
 
+    ## ログ用テキストボックス
+    layout_log_box = [
+        [sg.Multiline(background_color='#ffffcc', key='-log-text-', size=(50, 20), autoscroll=True)],
+        [sg.Button('Log Clear', key='-log-clear-')]
+    ]
+    layout_log_box_frame = sg.Frame('-- Log --', layout_log_box, relief=sg.RELIEF_SUNKEN)
+    log_str = ''
+
     ### レイアウト設定 ###
     layout_parent = [
         [
             layout_file_input,
-            layout_board_frame,
-            layout_footer
+            [layout_board_frame, layout_log_box_frame],
+            layout_footer,
         ]
     ]
 
@@ -98,7 +112,7 @@ if __name__ == "__main__":
 
         # CSVファイルが選択されたら、インスタンス更新し、盤面も更新
         if event == '-csv-input-file-':
-            print("file path: {}".format(values['-csv-input-file-']))
+            log_str += 'Selected File : {}\n'.format(values['-csv-input-file-'])
             board = class_board.Board(values['-csv-input-file-'])
             update_board(board)
             disable_button('-solve-', False)
@@ -107,24 +121,34 @@ if __name__ == "__main__":
 
         # Solveボタン押下
         if event == '-solve-':
+            log_str += '--- Start! ---\n'
+            log_str += 'Data File : {}\n'.format(values['-csv-input-file-'])
             solver.solve(board)
             update_board(board)
             disable_button('-reset-', False)
             disable_button('-solve-', True)
+            log_str += '--- Complete! ---\n'
 
         if event == '-reset-':
+            log_str += '--- Reset board. ---\n'
             # インスタンスを取得しなおす
             board = class_board.Board(values['-csv-input-file-'])
             update_board(board)
             disable_button('-solve-', False)
 
         if event == '-clear-':
+            log_str += '--- Clear ---.\n'
             board.clear()
             update_board(board)
             disable_button('-solve-', True)
             disable_button('-reset-', True)
             disable_button('-clear-', True)
             window['-csv-input-file-'].update('')
+
+        if event == '-log-clear-':
+            log_str = ''
+
+        window['-log-text-'].update(log_str)
 
 
 
