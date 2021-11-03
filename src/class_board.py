@@ -17,11 +17,19 @@ class Board:
   ## public function ##
 
   # 初期化関数
-  def __init__(self, file_path):
-    # CSVファイルからデータを読み込む
-    self.data = pd.read_csv(file_path, header=None)
+  def __init__(self, file_path=None, data=None, size=9):
+    if data != None:
+      # dataが指定されればそれを使う
+      self.data = copy.datacopy(data)
+      self.size = len(self.data)
+    elif file_path != None:
+      # CSVファイルからデータを読み込む
+      self.data = pd.read_csv(file_path, header=None)
+      self.size = len(self.data)
+    else:
+      self.size = size
+      self.clear()
     self.init_data = copy.deepcopy(self.data)
-    self.size = len(self.data)
 
     # sizeは整数の2乗である必要がある
     if int(math.sqrt(self.size)) ** 2 != self.size:
