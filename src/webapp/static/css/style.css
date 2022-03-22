@@ -1,0 +1,54 @@
+body {
+    background: rgb(176, 224, 243);
+}
+h1 {
+    color: rgb(41, 41, 204);
+}
+p {
+    color: #1F4E5F;
+}
+
+
+#sudoku-board {
+    background-color: white;
+    /*cellspacing: "0";*/
+    padding: 2px;
+}
+
+#sudoku-board tr {
+    margin: 0px;
+    padding: 0px;
+}
+
+/* 数独の１つのセル */
+#sudoku-board td {
+    height: 50px;
+    width: 50px;
+    text-align: center;
+    font-size: 24px;
+    border: 1px none black;
+}
+
+
+#csv-file-input-form {
+    width: 500px;
+    height: 30px;
+    font-size: 18px;
+    padding: 10px 0px;
+}
+
+
+.btn {
+    height: 30px;
+    font-size: 18px;
+    margin: 10px 0px;
+    margin-right: 5px;
+}
+
+.warnig {
+    color: white;
+    background-color: red;
+    font-weight: bold;
+    font-size: 18px;
+}
+

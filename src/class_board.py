@@ -8,7 +8,7 @@ import pandas as pd
 import math
 import copy
 
-from src.const import Const
+from const import Const
 
 ## data file path : '..\data\sample_0001.csv'
 
@@ -18,9 +18,9 @@ class Board:
 
   # 初期化関数
   def __init__(self, file_path=None, data=None, size=9):
-    if data != None:
+    if type(data) == pd.DataFrame:
       # dataが指定されればそれを使う
-      self.data = copy.datacopy(data)
+      self.data = copy.deepcopy(data)
       self.size = len(self.data)
     elif file_path != None:
       # CSVファイルからデータを読み込む
@@ -43,7 +43,7 @@ class Board:
     # 候補リストの初期値を求める
     self.update_all_candidate_list()
     # 候補リストを表示する
-    self.print_candidate_list()
+    # self.print_candidate_list()
 
     # ダンプするための配列
     self.stored_data = [] # データ

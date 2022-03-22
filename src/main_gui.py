@@ -111,7 +111,7 @@ if __name__ == "__main__":
             break
 
         # CSVファイルが選択されたら、インスタンス更新し、盤面も更新
-        if event == '-csv-input-file-':
+        if event == '-csv-input-file-' and values['-csv-input-file-'] != "":
             log_str += 'Selected File : {}\n'.format(values['-csv-input-file-'])
             board = class_board.Board(values['-csv-input-file-'])
             update_board(board)
