@@ -31,8 +31,7 @@ def solve():
     """
     # リクエストデータをDataFrameにする。
     board_data = arrange_request_board_data(request.get_data().decode('UTF-8'))
-    # board = Board(data=board_data)
-    board = Board(file_path = '../data/sample_4003.csv')
+    board = Board(data=board_data)
     solver = Solver()
     solver.solve(board)
 
