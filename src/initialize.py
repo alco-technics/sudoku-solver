@@ -13,7 +13,6 @@ import Common as comLib
 
 def initBoard():
   # 全てのセルを0とする
-  print([[0]*9]*9)
   board = pd.DataFrame([[0]*9]*9)
   return board
 
@@ -81,8 +80,6 @@ if __name__ == "__main__":
 
   board = makeBoardFromCsv('..\data\sample_0001.csv')
   initBoard = copy.deepcopy(board)
-  print(board)
-  print(board.size)
   # comLib.updateCell(board, 0, 0, 8)
 
   print("init board ... ")

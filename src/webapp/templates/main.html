@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <link rel="stylesheet" href="static/css/style.css">
+        <link rel="icon" href="static/image/favicon.ico">
+        <title>数独を解く</title>
+        <!-- jsの読み込み -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+        <script src="static/js/script_head.js"></script>
+    </head>
+
+    <body>
+
+        <h1>数独を解く</h1>
+        <input id="csv-file-input-form" type="file" accept=".csv"/>
+        <br>
+        <p>
+            <input type="button" id="btn-solve-start" class="btn" value="Solve" onclick="solveSudoku()">
+            <span id="warning-msg" class="warnig"></span>
+            
+        </p>
+
+    <table id="sudoku-board" cellspacing="0">
+      <tbody>
+      </tbody>
+    </table>
+
+    <!-- jsの読み込み -->
+    <script src="static/js/script.js"></script>
+
+    </body>
+</html>

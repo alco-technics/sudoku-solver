@@ -7,7 +7,7 @@
 import numpy as np
 import copy
 import time
-from src.const import Const
+from const import Const
 
 class Solver:
 
